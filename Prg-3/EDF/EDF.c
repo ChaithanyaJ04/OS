@@ -1,75 +1,71 @@
 #include <stdio.h>
 
+#define MAX 10
+
 int main() {
-    int n, i, t = 0, completed = 0;
-    int at[10], bt[10], d[10], rt[10];
-    float U = 0;
+    int n, i, t = 0, hyper = 20; // simulate till time = 20
+
+    int Ci[MAX], Di[MAX], Ti[MAX];
+    int remaining[MAX], deadline[MAX];
+    int next_arrival[MAX];
 
     printf("Enter number of processes: ");
     scanf("%d", &n);
 
     // Input
     for (i = 0; i < n; i++) {
-        printf("Process %d Arrival Time: ", i + 1);
-        scanf("%d", &at[i]);
+        printf("\nProcess P%d\n", i + 1);
 
-        printf("Process %d Burst Time: ", i + 1);
-        scanf("%d", &bt[i]);
+        printf("Execution Time (Ci): ");
+        scanf("%d", &Ci[i]);
 
-        printf("Process %d Deadline: ", i + 1);
-        scanf("%d", &d[i]);
+        printf("Deadline (Di): ");
+        scanf("%d", &Di[i]);
 
-        rt[i] = bt[i];
+        printf("Period (Ti): ");
+        scanf("%d", &Ti[i]);
+
+        remaining[i] = 0;        // no job initially
+        next_arrival[i] = 0;     // first arrival at time 0
+        deadline[i] = 0;
     }
 
-    // Step 1: CPU Utilization
-    for (i = 0; i < n; i++) {
-        U += (float)bt[i] / d[i];
-    }
+    printf("\nExecution Order:\n");
 
-    printf("\nCPU Utilization = %.2f\n", U);
+    // Run simulation
+    while (t < hyper) {
 
-    // Step 2: Feasibility Check
-    if (U > 1)
-        printf("Scheduling not feasible\n");
-    else
-        printf("Scheduling feasible\n");
+        // Check for new arrivals
+        for (i = 0; i < n; i++) {
+            if (t == next_arrival[i]) {
+                remaining[i] = Ci[i];                 // new job
+                deadline[i] = t + Di[i];              // absolute deadline
+                next_arrival[i] += Ti[i];             // next release
+            }
+        }
 
-    printf("\nEDF Scheduling:\n");
-
-    // Step 3–4: Scheduling Loop
-    while (completed < n) {
-        int idx = -1;
+        int selected = -1;
         int min_deadline = 9999;
 
-        // Find ready process with earliest deadline
+        // Select process with earliest deadline
         for (i = 0; i < n; i++) {
-            if (at[i] <= t && rt[i] > 0) {
-                if (d[i] < min_deadline) {
-                    min_deadline = d[i];
-                    idx = i;
+            if (remaining[i] > 0) {
+                if (deadline[i] < min_deadline) {
+                    min_deadline = deadline[i];
+                    selected = i;
                 }
             }
         }
 
-        if (idx == -1) {
-            printf("Idle ");
-            t++;
-            continue;
-        }
-
-        // Execute 1 unit
-        printf("P%d ", idx + 1);
-        rt[idx]--;
-
-        // Completion
-        if (rt[idx] == 0) {
-            completed++;
+        if (selected == -1) {
+            printf("Time %d: Idle\n", t);
+        } else {
+            printf("Time %d: P%d\n", t, selected + 1);
+            remaining[selected]--;
         }
 
         t++;
     }
 
-    printf("\n");
     return 0;
 }
